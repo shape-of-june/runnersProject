@@ -20,33 +20,36 @@ app.get('/crawl', async (req, res) => {
 
         // Extract the links from the page
         const links = [];
-        const titles = [];
+        $('tr.bo_notice').each((index, element) => {
+            const $subject = $(element).find('td.td_subject div.bo_tit a');
+            const subjectText = $subject.text().trim();
+            const subjectHref = $subject.attr('href');
 
-        $('tr.bo_notice td.td_subject div.bo_tit a').each((index, element) => {
-            const link = $(element).attr('href');
-            const title = $(element).text().trim();
-            if (link) {
-                links.push([title,link]);
-            }
+            const $datetime = $(element).find('td.td_datetime.hidden-xs');
+            const datetimeText = $datetime.text().trim();
+
+            links.push({ subject: subjectText, href: subjectHref, datetime: datetimeText });
         });
+
         const html = `
-          <!DOCTYPE html>
-          <html lang="en">
-          <head>
-              <meta charset="UTF-8">
-              <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>Crawled Links</title>
-          </head>
-          <body>
-              <h1>Crawled Links</h1>
-              <ul>
-                  ${links.map(link => `<li><a href="${link[1]}">${link[0]}</a></li>`).join('\n')}
-              </ul>
-          </body>
-          </html>
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+                <meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Crawled Links</title>
+            </head>
+            <body>
+                <h1>Crawled Links</h1>
+                <ul>
+                    ${links.map(link => `<li><a href="${link.href}">
+                        ${link.datetime + " " + link.subject}</a></li>`).join('\n')}
+                </ul>
+            </body>
+            </html>
         `;
 
-        // // Send the extracted links as the response
+        // // Send the extracted links as the response in json
         // res.json(links);
         
         // Set Content-Type header to indicate that the response contains HTML
